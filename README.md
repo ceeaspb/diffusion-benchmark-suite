@@ -14,30 +14,56 @@ Currently implemented experiments are:
 
 #### Throughput
 
-A broadcasting publisher is set up, publishing at a uniform rate across a set number of topics. A population of clients subscribes to all topics.
+A broadcasting publisher is set up, publishing at a uniform rate across a set
+number of topics. A population of clients subscribes to all topics.
     
-The experiment can be set up to examine server behaviour for different types of load resulting from a growing client population / increase of topics / increase of messages / message size. The experiment reports throughput from the clients' perspective.
+The experiment can be set up to examine server behavior for different types of
+load resulting from a growing client population / increase of topics /
+increase of messages / message size. The experiment reports throughput from the clients' perspective.
     
 #### Latency
 
-A pong/echo publisher is set up which "echo"s clients messages back to them. The experiment allows the number concurrently pinging clients to be controlled. Clients ping as fast as they can. The ping service can either respond to the particular client or broadcast on the ping topic.
+A pong/echo publisher is set up which "echo"s clients messages back to them.
+The experiment allows the number concurrently pinging clients to be
+controlled. Clients ping as fast as they can. The ping service can either
+respond to the particular client or broadcast on the ping topic.
     
-#### Remote Control Latency
+#### Control Client Latency
 
-A RemoteControl client is connected and sets up an Echo topic as described above. We connect clients to it and measure response time (Client <-> Server <-> RC).
-    
-#### Remote Control Throughput + Latency
+A client is connected and uses Control features to set up an Echo topic as
+described above. We connect clients to the server and measure response time
+(Client <-> Server <-> Control Client). The Control Client must connect to a
+Connector that supports the client type UCI. It does not require a publisher
+to be configured.
 
-A RemoteControl client is connected and sets up a topic tree similar to the one used in the throughput experiment. Latency is measured from RemoteControl client to clients (RC -> Server -> Client)
+This experiment uses the MessagingControl feature in the
+control client to listen for and send messages. The MessagingControl feature
+will respond to the control client with a callback to indicate the success or
+failure of the message. To do this a finite amount of space is allocated to
+track the outstanding messages. To prevent this space being completely
+consumed you need to configure an additional setting on the server
+`diffusion.timeout.tick=-1`. This can be done by adding it as a `-D` flag in
+the `diffusion.sh` file of the server you are running the experiment against.
+
+#### Control Client Throughput + Latency
+
+A client is connected and uses Control features to set up a topic tree
+similar to the one used in the throughput experiment. Latency is measured
+from Control Client client to clients (Control Client -> Server -> Client). The
+Control Client must connect to a Connector that supports the client type UCI.
+It does not require a publisher to be configured.
 
 ##Building the benchmarks distributable
 To build and run the benchmarks it is assumed that you have the following installed:
 
 * Ant (>1.8)
-* Java JDK (>1.6)
-* Diffusion (>4)
+* Java JDK (>1.7)
+* Diffusion (>5)
 
-You will need to add the JDK and Ant `bin` folders to your `PATH`. You will also need to define `DIFFUSION_HOME` to point to the Difussion installation.
+You will need to add the JDK and Ant `bin` folders to your `PATH`. You will
+also need to define `DIFFUSION_HOME` to point to the Diffusion installation.
+On Unix-like systems it is possible to use the `env` command to setup a
+temporary environment.
 
 At this point you can use the `build.xml` in the project directory to build the
 benchmarks distributable. Invoking `ant` or `ant dist` should result
@@ -106,7 +132,7 @@ in a variety of configurations. The benchmarks can be run as a suite (similar
 to JUnit test suites) with before/after tasks run before/after every benchmark.
 Target names which start with *perfTest* are assumed benchmarks.
 
-We'll work through the options by example. First, open a terminal and change to the `benchamrk-server` directory.
+We'll work through the options by example. First, open a terminal and change to the `benchmark-server` directory.
 
 ####Run the throughput suite against localhost
 
