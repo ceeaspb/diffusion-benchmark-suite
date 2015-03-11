@@ -88,7 +88,7 @@ public final class BroadcastPublisher extends Publisher implements
     }
 
     protected static void setupMergePolicy() throws APIException {
-        ConflationPolicyConfig policy = ConfigManager.getConfig()
+        ConflationPolicyConfig policy = ConfigManager.getServerConfig()
                 .getConflation().addPolicy("XXX", Mode.REPLACE,
                         new MessageMerger() {
                             @Override
@@ -100,14 +100,14 @@ public final class BroadcastPublisher extends Publisher implements
                                 return arg0.duplicate();
                             }
                         });
-        ConfigManager.getConfig().getConflation()
+        ConfigManager.getServerConfig().getConflation()
                 .setDefaultPolicy(policy.getName());
     }
 
     protected static void setupDefaultPolicy(Mode mode) throws APIException {
-        ConflationPolicyConfig policy = ConfigManager.getConfig()
+        ConflationPolicyConfig policy = ConfigManager.getServerConfig()
                 .getConflation().addPolicy("XXX", mode);
-        ConfigManager.getConfig().getConflation()
+        ConfigManager.getServerConfig().getConflation()
                 .setDefaultPolicy(policy.getName());
     }
 

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.LatencyMonitoringClient;
-import com.pushtechnology.benchmarks.clients.UnsafeLatencyMonitoringClient;
+import com.pushtechnology.benchmarks.clients.SafeLatencyMonitoringClient;
 import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.client.Diffusion;
@@ -95,7 +95,7 @@ public final class ControlClientTLExperiment implements Runnable {
             @Override
             public ExperimentClient create() {
                 LatencyMonitoringClient pingClient =
-                        new UnsafeLatencyMonitoringClient(loop
+                        new SafeLatencyMonitoringClient(loop
                                 .getExperimentCounters(),
                                 false, "DOMAIN//");
                 clients.add(pingClient);

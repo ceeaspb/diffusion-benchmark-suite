@@ -4,6 +4,7 @@
 /.classpath
 /.project
 /benchmark-server.zip
+/benchmark-server/
 /defaults.settings
 /.settings
 /bin
