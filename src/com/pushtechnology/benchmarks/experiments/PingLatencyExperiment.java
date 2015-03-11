@@ -59,8 +59,7 @@ public final class PingLatencyExperiment implements Runnable {
                 for (PingClient connection : clients) {
                     histogramSummary.add(connection.getHistogram());
                 }
-                histogramSummary.getHistogramData().
-                        outputPercentileDistribution(getOutput(), 1, 1000.0);
+                histogramSummary.outputPercentileDistribution(getOutput(), 1, 1000.0);
                 // CHECKSTYLE:ON
             }
         };

@@ -25,6 +25,7 @@ import java.util.concurrent.locks.LockSupport;
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 
+import org.HdrHistogram.AbstractHistogram;
 import org.HdrHistogram.Histogram;
 
 import com.pushtechnology.benchmarks.util.JmxHelper;
@@ -166,23 +167,18 @@ public class ExperimentMonitor implements Runnable {
         }
         getOutput().println("-------");
         getOutput().print("Throughput [count: ");
-        getOutput().print(messageThroughputHistogram.
-                getHistogramData().getTotalCount());
+        getOutput().print(messageThroughputHistogram.getTotalCount());
         getOutput().print(" max:");
-        getOutput().print(messageThroughputHistogram.
-                getHistogramData().getMaxValue());
+        getOutput().print(messageThroughputHistogram.getMaxValue());
         getOutput().print(" avg:");
-        getOutput().print(messageThroughputHistogram.
-                getHistogramData().getMean());
+        getOutput().print(messageThroughputHistogram.getMean());
         getOutput().print(" mid:");
         // CHECKSTYLE:OFF
-        getOutput().print(messageThroughputHistogram.
-                getHistogramData().getValueAtPercentile(50));
+        getOutput().print(messageThroughputHistogram.getValueAtPercentile(50));
         // CHECKSTYLE:ON
 
         getOutput().print(" min:");
-        getOutput().print(messageThroughputHistogram.
-                getHistogramData().getMinValue());
+        getOutput().print(messageThroughputHistogram.getMinValue());
         getOutput().println("]");
     }
 

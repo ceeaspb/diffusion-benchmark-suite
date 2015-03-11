@@ -18,6 +18,7 @@ import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.LatencyMonitoringClient;
 import com.pushtechnology.benchmarks.clients.SafeLatencyMonitoringClient;
 import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
+import com.pushtechnology.benchmarks.control.clients.ControlClientSettings;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.client.Diffusion;
 import com.pushtechnology.diffusion.client.content.Content;
@@ -84,8 +85,8 @@ public final class ControlClientTLExperiment implements Runnable {
                 for (LatencyMonitoringClient connection : clients) {
                     histogramSummary.add(connection.getHistogram());
                 }
-                histogramSummary.getHistogramData().
-                    outputPercentileDistribution(
+                histogramSummary
+                    .outputPercentileDistribution(
                         getOutput(),
                         1,
                         HISTOGRAM_SCALING_RATIO);
@@ -150,7 +151,7 @@ public final class ControlClientTLExperiment implements Runnable {
          * @param settingsP ..
          */
         private ControlClient(Settings settingsP) {
-            super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1);
+            super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1, settingsP.getPrincipal(), settingsP.getPassword());
             settings = settingsP;
         }
 
@@ -286,7 +287,7 @@ public final class ControlClientTLExperiment implements Runnable {
     }
 
     /** Experiment specialized settings. */
-    public static class Settings extends CommonExperimentSettings {
+    public static class Settings extends ControlClientSettings {
         // CHECKSTYLE:OFF
         private final long intervalPauseNanos;
 

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.PingClient;
 import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
+import com.pushtechnology.benchmarks.control.clients.ControlClientSettings;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.benchmarks.util.PropertiesUtil;
 import com.pushtechnology.diffusion.client.Diffusion;
@@ -91,8 +92,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                 for (PingClient connection : clients) {
                     histogramSummary.add(connection.getHistogram());
                 }
-                histogramSummary.getHistogramData().
-                        outputPercentileDistribution(getOutput(), 1, HISTOGRAM_SCALING_RATIO);
+                histogramSummary.outputPercentileDistribution(getOutput(), 1, HISTOGRAM_SCALING_RATIO);
                 // CHECKSTYLE:ON
             }
         };
@@ -134,7 +134,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
          * @param settings ..
          */
         private ControlClient(Settings settings) {
-            super(settings.getControlClientURL(), BUFFER_SIZE, 2);
+            super(settings.getControlClientURL(), BUFFER_SIZE, 2, settings.getPrincipal(), settings.getPassword());
         }
 
         @Override
@@ -233,7 +233,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
     /**
      * Experiment specific settings.
      */
-    public static final class Settings extends CommonExperimentSettings {
+    public static final class Settings extends ControlClientSettings {
         /**
          * Control client URL.
          */
