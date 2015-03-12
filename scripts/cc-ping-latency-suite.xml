@@ -12,22 +12,22 @@
 	<import file="cc-test-suite-common.xml" />
 
 	<target name="perfTest-1000b-cc-ping-latency">
-		<run-cc-ping-test test.name="1000b-cc-ping-latency" message.size="1000" />
+		<run-cc-ping-test test.name="cc-ping-latency-1000b" message.size="1000" />
 	</target>
 	<target name="perfTest-2000b-cc-ping-latency">
-		<run-cc-ping-test test.name="2000b-cc-ping-latency" message.size="2000" />
+		<run-cc-ping-test test.name="cc-ping-latency-2000b" message.size="2000" />
 	</target>
 	<target name="perfTest-500b-cc-ping-latency">
-		<run-cc-ping-test test.name="500b-cc-ping-latency" message.size="500" />
+		<run-cc-ping-test test.name="cc-ping-latency-500b" message.size="500" />
 	</target>
 	<target name="perfTest-250b-cc-ping-latency">
-		<run-cc-ping-test test.name="250b-cc-ping-latency" message.size="250" />
+		<run-cc-ping-test test.name="cc-ping-latency-250b" message.size="250" />
 	</target>
 	<target name="perfTest-250b-cc-ping-throughput">
-		<run-cc-ping-test test.name="250b-cc-ping-latency" message.size="250" />
+		<run-cc-ping-test test.name="cc-ping-latency-250b" message.size="250" />
 	</target>
 	<target name="perfTest-125b-cc-ping-latency">
-		<run-cc-ping-test test.name="125b-cc-ping-latency" message.size="125" />
+		<run-cc-ping-test test.name="cc-ping-latency-125b" message.size="125" />
 	</target>
 
 	<macrodef name="run-cc-ping-test">

@@ -49,22 +49,19 @@
 		</if>
 	</target>
 	<target name="perfTest-1000b-ping-latency">
-		<run-ping-test test.name="1000b-ping-latency" message.size="1000" />
+		<run-ping-test test.name="ping-latency-1000b" message.size="1000" />
 	</target>
 	<target name="perfTest-2000b-ping-latency">
-		<run-ping-test test.name="2000b-ping-latency" message.size="2000" />
+		<run-ping-test test.name="ping-latency-2000b" message.size="2000" />
 	</target>
 	<target name="perfTest-500b-ping-latency">
-		<run-ping-test test.name="500b-ping-latency" message.size="500" />
+		<run-ping-test test.name="ping-latency-500b" message.size="500" />
 	</target>
 	<target name="perfTest-250b-ping-latency">
-		<run-ping-test test.name="250b-ping-latency" message.size="250" />
-	</target>
-	<target name="perfTest-250b-ping-throughput">
-		<run-ping-test test.name="250b-ping-latency" message.size="250" />
+		<run-ping-test test.name="ping-latency-250b" message.size="250" />
 	</target>
 	<target name="perfTest-125b-ping-latency">
-		<run-ping-test test.name="125b-ping-latency" message.size="125" />
+		<run-ping-test test.name="ping-latency-125b" message.size="125" />
 	</target>
 
 	<macrodef name="run-ping-test">
