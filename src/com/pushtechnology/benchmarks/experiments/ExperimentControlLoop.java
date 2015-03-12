@@ -133,6 +133,7 @@ public class ExperimentControlLoop implements Runnable {
             }
             Logs.info("Initial load created");
             postInitialLoadCreated();
+            experimentMonitor.start();
             experimentMonitor.startSampling();
             long lastIncrementTime = System.currentTimeMillis();
             while (loadStrategy.testNotOver(testStartTime)) {
@@ -177,7 +178,7 @@ public class ExperimentControlLoop implements Runnable {
     }
 
     /**
-     * Setup some Diffusion properties and start monitoring.
+     * Setup some Diffusion properties
      */
     private void setUp() {
         // configure
@@ -188,7 +189,6 @@ public class ExperimentControlLoop implements Runnable {
         } catch (final APIException e) {
             throw new RuntimeException(e);
         }
-        experimentMonitor.start();
     }
 
     /**

@@ -176,7 +176,7 @@ public final class ControlClientTLExperiment implements Runnable {
                     Executors.newSingleThreadScheduledExecutor()
                         .scheduleAtFixedRate(
                             new LoadTask(),
-                            0L,
+                            settings.intervalPauseNanos /5,
                             settings.intervalPauseNanos,
                             TimeUnit.NANOSECONDS);
                     initialised();

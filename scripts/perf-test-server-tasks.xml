@@ -71,6 +71,7 @@
 			<waitfor>
 				<socket server="localhost" port="8080" />
 			</waitfor>
+                        <sleep seconds="5"/>
 		</sequential>
 	</macrodef>
 	<macrodef name="clean-diffusion">

@@ -18,14 +18,12 @@ package com.pushtechnology.benchmarks.monitoring;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 
-import org.HdrHistogram.AbstractHistogram;
 import org.HdrHistogram.Histogram;
 
 import com.pushtechnology.benchmarks.util.JmxHelper;
@@ -102,20 +100,22 @@ public class ExperimentMonitor implements Runnable {
     public final void run() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss.SSS");
 
-        getOutput().println("Time, MessagesPerSecond, ClientsConnected, Topics,"
+        deadline = System.currentTimeMillis();
+        long messagesBefore = experimentCounters.getMessageCounter();
+        long bytesBefore = experimentCounters.getBytesCounter();
+        long timeBefore = System.nanoTime();
+        long timeStart = timeBefore;
+        
+        getOutput().println("# Start timestamps : "+format.format(timeStart)+" "+timeStart);
+        getOutput().println("ElapsedTimeMS, MessagesPerSecond, ClientsConnected, Topics,"
                 + " InSample, Cpu, ClientDisconnects, ConnectionRefusals, "
                 + "ConnectionAttempts, BytesPerSecond, UsedHeapMB, "
                 + "CommitedHeapMB, MaxHeapMB, UsedOffHeapMB, CommittedOffHeapMB"
                 + ", MaxOffHeapMB, ServerCPU, ServerHeapUsedMB, "
                 + "ServerHeapCommittedMB, ServerMaxHeapMB, ServerOffHeapUsedMB,"
                 + " ServerOffHeapCommittedMB, ServerOffHeapMaxMB");
-        deadline = System.currentTimeMillis();
-        long messagesBefore = experimentCounters.getMessageCounter();
-        long bytesBefore = experimentCounters.getBytesCounter();
-        long timeBefore = System.nanoTime();
+        
         while (isRunning) {
-            deadline += MILLIS_IN_SECOND;
-            LockSupport.parkUntil(deadline);
             final long messagesAfter = experimentCounters.getMessageCounter();
             final long bytesAfter = experimentCounters.getBytesCounter();
             final long timeAfter = System.nanoTime();
@@ -134,7 +134,7 @@ public class ExperimentMonitor implements Runnable {
             memoryMonitor.sample();
             getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d, %s, "
                     + "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n",
-                    format.format(new Date()),
+                    (timeAfter - timeStart)/1000000,
                     messagesPerSecond,
                     experimentCounters.getCurrentlyConnected(),
                     experimentCounters.getTopicsCounter(),
@@ -164,6 +164,8 @@ public class ExperimentMonitor implements Runnable {
             }
             // Single writer to this counter, so lazy set is fine
             experimentCounters.setLastMessagesPerSecond(messagesPerSecond);
+            deadline += MILLIS_IN_SECOND;
+            LockSupport.parkUntil(deadline);
         }
         getOutput().println("-------");
         getOutput().print("Throughput [count: ");
