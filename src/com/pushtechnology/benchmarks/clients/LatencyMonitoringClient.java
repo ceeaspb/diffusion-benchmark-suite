@@ -16,6 +16,7 @@
 package com.pushtechnology.benchmarks.clients;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.HdrHistogram.Histogram;
 
@@ -36,14 +37,20 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
 public abstract class LatencyMonitoringClient extends MessageCountingClient {
     // CHECKSTYLE:OFF
     private static final int WARMUP_MESSAGES = 20000;
-    private final Histogram histogram = 
-            new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
+    private final Histogram histogram;
     protected ServerConnection connection;
     private Object connectionLock = new Object();
-
+    
+    public static final long MAX_LATENCY_VALUE = TimeUnit.SECONDS.toNanos(1);
+    
     public LatencyMonitoringClient(ExperimentCounters experimentCountersP,
-            boolean reconnectP, String... initialTopicsP) {
+            boolean reconnectP, Histogram commonHistogram, String... initialTopicsP) {
         super(experimentCountersP, reconnectP, initialTopicsP);
+        
+        if(commonHistogram != null)
+        	histogram = commonHistogram;
+        else
+        	histogram = new Histogram(MAX_LATENCY_VALUE, 3);
     }
     // CHECKSTYLE:ON
     @Override
@@ -53,22 +60,30 @@ public abstract class LatencyMonitoringClient extends MessageCountingClient {
         }
     }
 
-
+    /**
+     * Measures and records latency.
+     * See also ControlClientTLExperiment HISTOGRAM_SCALING_RATIO
+     */
     @SuppressWarnings("deprecation")
     @Override
     public final void onMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {
-        // CHECKSTYLE:ON
+    	long sent = -1;
         long arrived = getArrivedTimestamp();
-
+    	long rtt=-1;
         if (experimentCounters.getMessageCounter() > WARMUP_MESSAGES
                 && topicMessage.isDelta()) {
             try {
-                long sent = getSentTimestamp(topicMessage);
-                long rtt = arrived - sent;
+                sent = getSentTimestamp(topicMessage);
+                rtt = arrived - sent;
+                // avoid java.lang.ArrayIndexOutOfBoundsException: value outside of histogram covered range.
+                // clearly if we observe MAX_LATENCY_VALUE then it is already a bad situation
+                if(rtt >= MAX_LATENCY_VALUE){
+                	rtt = MAX_LATENCY_VALUE;
+                }
                 getHistogram().recordValue(rtt);
             } catch (Exception e) {
-                Logs.severe("Failed to capture rtt:", e);
+                Logs.severe("Failed to capture rtt: "+rtt+" sent= "+sent+" arrived= "+arrived, e);
                 return;
             }
         }

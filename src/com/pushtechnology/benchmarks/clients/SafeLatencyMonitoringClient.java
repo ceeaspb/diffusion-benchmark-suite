@@ -17,6 +17,7 @@ package com.pushtechnology.benchmarks.clients;
 
 import java.nio.ByteBuffer;
 
+import org.HdrHistogram.Histogram;
 
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.message.MessageException;
@@ -46,9 +47,14 @@ public final class SafeLatencyMonitoringClient extends LatencyMonitoringClient {
      */
     public SafeLatencyMonitoringClient(ExperimentCounters experimentCountersP,
             boolean reconnectP, String... initialTopicsP) {
-        super(experimentCountersP, reconnectP, initialTopicsP);
+        super(experimentCountersP, reconnectP, null, initialTopicsP);
     }
 
+    public SafeLatencyMonitoringClient(ExperimentCounters experimentCountersP,
+            boolean reconnectP, Histogram commonHistogram, String... initialTopicsP) {
+        super(experimentCountersP, reconnectP, commonHistogram, initialTopicsP);
+    }
+    
     @Override
     protected long getArrivedTimestamp() {
         return System.nanoTime();

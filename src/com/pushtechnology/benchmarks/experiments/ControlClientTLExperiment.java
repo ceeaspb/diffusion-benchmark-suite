@@ -4,12 +4,14 @@ import static com.pushtechnology.benchmarks.util.PropertiesUtil.getProperty;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 
 /**
+ * Control Client Throughput Latency Experiment.
  * Experiment to measure throughput from control client.
  */
 public final class ControlClientTLExperiment implements Runnable {
@@ -44,6 +47,8 @@ public final class ControlClientTLExperiment implements Runnable {
         LoggerFactory.getLogger(ControlClientTLExperiment.class);
     /**
      * The ratio used by the histogram to scale its output.
+     * We measure time with System.nanoTime() - therefore with a
+     * scaling of 1000 the reported time is in micros...
      */
     private static final double HISTOGRAM_SCALING_RATIO = 1000.0;
     /**
@@ -51,6 +56,11 @@ public final class ControlClientTLExperiment implements Runnable {
      */
     private static final int BUFFER_SIZE = 64 * 1024;
 
+    /**
+     * Histogram significant digits
+     */
+    private static final int SIG_DIGITS = 3;
+    
     /**
      * The clients.
      */
@@ -61,6 +71,11 @@ public final class ControlClientTLExperiment implements Runnable {
      * Control loop.
      */
     private final ExperimentControlLoop loop;
+    
+    /**
+     * The latency histogram for the test across all the clients.
+     */
+    private final Histogram histogram = new AtomicHistogram(TimeUnit.SECONDS.toNanos(10), SIG_DIGITS);
 
     /**
      * @param settings ...
@@ -78,18 +93,60 @@ public final class ControlClientTLExperiment implements Runnable {
             }
             @Override
             protected void wrapupAndReport() {
-                // CHECKSTYLE:OFF
-                Histogram histogramSummary =
-                        new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
-                // CHECKSTYLE:ON
-                for (LatencyMonitoringClient connection : clients) {
-                    histogramSummary.add(connection.getHistogram());
+
+            	double[] percentiles = {
+            			1,
+            			50,
+            			75,
+            			87.5,
+            			96.875,
+            			98.4375,
+            			99.21875,
+            			99.609375,
+            			99.8046875,
+            			99.90234375,
+            			99.951171875,
+            			99.9755859375,
+            			99.99,
+            			100.0
+            			};
+            	
+            	getOutput().format("%12s %14s %10s %14s\n\n", "Value", "Percentile", "TotalCount", "1/(1-Percentile)");
+
+            	int numberOfSignificantValueDigits = SIG_DIGITS;
+                String percentileFormatString = "%12." + numberOfSignificantValueDigits + "f %2.12f %10d %14.2f\n";
+                String lastLinePercentileFormatString = "%12." + numberOfSignificantValueDigits + "f %2.12f %10d\n";
+                
+                int i=0;
+                while (i<percentiles.length) {
+                    //HistogramIterationValue iterationValue = iterator.next();
+                	double pct = percentiles[i];
+                	long value = histogram.getValueAtPercentile(pct);
+                	long count = histogram.getCountAtValue(value);
+                    if (pct < 100.0D) {
+                    	getOutput().format(Locale.US, percentileFormatString,
+                    			value / HISTOGRAM_SCALING_RATIO,
+                                pct/100.0D,
+                                count,
+                                1/(1.0D - (pct/100.0D)) );
+                    } else {
+                    	getOutput().format(Locale.US, lastLinePercentileFormatString,
+                                value / HISTOGRAM_SCALING_RATIO,
+                                pct/100.0D,
+                                count);
+                    }
+                    i++;
                 }
-                histogramSummary
-                    .outputPercentileDistribution(
-                        getOutput(),
-                        1,
-                        HISTOGRAM_SCALING_RATIO);
+                
+                double mean =  histogram.getMean() / HISTOGRAM_SCALING_RATIO;
+                double std_deviation = histogram.getStdDeviation() / HISTOGRAM_SCALING_RATIO;
+                getOutput().format(Locale.US,
+                        "#[Mean    = %12." + numberOfSignificantValueDigits + "f, StdDeviation   = %12." +
+                                numberOfSignificantValueDigits +"f]\n",
+                        mean, std_deviation);
+                getOutput().format(Locale.US,
+                        "#[Max     = %12." + numberOfSignificantValueDigits + "f, Total count    = %12d]\n",
+                        histogram.getMaxValue() / HISTOGRAM_SCALING_RATIO, histogram.getTotalCount());
             }
         };
         loop.setClientFactory(new Factory<ExperimentClient>() {
@@ -98,7 +155,9 @@ public final class ControlClientTLExperiment implements Runnable {
                 LatencyMonitoringClient pingClient =
                         new SafeLatencyMonitoringClient(loop
                                 .getExperimentCounters(),
-                                false, "DOMAIN//");
+                                false, 
+                                histogram,
+                        		"DOMAIN//");
                 clients.add(pingClient);
                 return pingClient;
             }

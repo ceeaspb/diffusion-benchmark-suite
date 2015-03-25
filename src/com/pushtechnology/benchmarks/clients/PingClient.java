@@ -30,6 +30,7 @@ public final class PingClient extends LatencyMonitoringClient {
     public PingClient(ExperimentCounters experimentCountersP, int sizeP,
             String pingTopicP) {
         super(experimentCountersP, true,
+        		null, // Client uses its own histogram
                 pingTopicP);
         this.size = sizeP;
         this.pingTopic = pingTopicP;
