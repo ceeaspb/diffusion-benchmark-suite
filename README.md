@@ -10,6 +10,11 @@ Our framework consists of:
 the deploy folder of the server)
 * Soft cushions!  
 
+### Minimum Diffusion version
+
+This version of the benchmark suite supports Diffusion 5.1.0 and higher only.
+
+
 Currently implemented experiments are:
 
 #### Throughput

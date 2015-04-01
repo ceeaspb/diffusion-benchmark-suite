@@ -23,15 +23,15 @@ import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
 import com.pushtechnology.benchmarks.control.clients.ControlClientSettings;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.client.Diffusion;
+import com.pushtechnology.diffusion.client.callbacks.ErrorReason;
 import com.pushtechnology.diffusion.client.content.Content;
 import com.pushtechnology.diffusion.client.features.RegisteredHandler;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl.AddCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.UpdateSource;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater.UpdateCallback;
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 
@@ -213,14 +213,19 @@ public final class ControlClientTLExperiment implements Runnable {
             super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1, settingsP.getPrincipal(), settingsP.getPassword());
             settings = settingsP;
         }
-
+        
         @Override
         public void initialise(final Session session) {
             updateControl = session.feature(TopicUpdateControl.class);
-            updateControl.addTopicSource("DOMAIN", new TopicSource() {
+            updateControl.registerUpdateSource("DOMAIN", new UpdateSource.Default() {
+            	private RegisteredHandler handler;
+
+              	public void onRegistered(RegisteredHandler handler) {
+              		this.handler = handler;
+              	}
+            
                 @Override
-                public void onActive(String topicPath,
-                        RegisteredHandler handler, final Updater updaterP) {
+                public void onActive(String topicPath, final Updater updaterP) {
                     updater = updaterP;
                     final Content initialContent = Diffusion.content()
                         .newContent("INIT");
@@ -240,14 +245,6 @@ public final class ControlClientTLExperiment implements Runnable {
                             TimeUnit.NANOSECONDS);
                     initialised();
                 }
-
-                @Override
-                public void onClosed(String topicPath) {
-                }
-                @Override
-                public void onStandBy(String topicPath) {
-                    LOG.warn("Failed to become source for {}", topicPath);
-                }
             });
         }
 
@@ -261,14 +258,10 @@ public final class ControlClientTLExperiment implements Runnable {
             final ByteBuffer buffer = ByteBuffer.wrap(bytes);
             buffer.putLong(System.nanoTime());
             final Content content = Diffusion.content().newContent(bytes);
-            updater.update("DOMAIN/" + i, content, new UpdateCallback() {
-                @Override
-                public void onError(String topic, UpdateError error) {
-                    LOG.debug("Failed to update topic {}", topic);
-                }
-                @Override
-                public void onSuccess(String topic) {
-                }
+            updater.update("DOMAIN/" + i, content, new UpdateCallback.Default() {
+				@Override
+				public void onSuccess() {
+				}
             });
         }
 

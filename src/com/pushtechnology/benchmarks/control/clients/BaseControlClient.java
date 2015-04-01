@@ -24,9 +24,7 @@ public abstract class BaseControlClient {
      */
     public BaseControlClient(String url, int bufferSize, int countDown, String principal, String password) {
     	
-    	System.out.println(principal+" "+password);
-    	
-        session = Diffusion.sessions()
+    	session = Diffusion.sessions()
             .outputBufferSize(bufferSize)
             .inputBufferSize(bufferSize)
             .principal(principal)

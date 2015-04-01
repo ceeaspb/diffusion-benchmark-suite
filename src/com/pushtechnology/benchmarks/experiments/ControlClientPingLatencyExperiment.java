@@ -24,10 +24,9 @@ import com.pushtechnology.diffusion.client.features.control.topics.MessagingCont
 import com.pushtechnology.diffusion.client.features.control.topics.MessagingControl.SendCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater.UpdateCallback;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.UpdateSource;
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.session.SessionClosedException;
 import com.pushtechnology.diffusion.client.session.SessionId;
@@ -142,23 +141,13 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
             final TopicUpdateControl updateControl =
                 session.feature(TopicUpdateControl.class);
 
-            updateControl.addTopicSource(PING_TOPIC, new TopicSource() {
-                @Override
-                public void onActive(String topicPath,
-                        RegisteredHandler handler,
-                        final Updater updater) {
-                    final TopicControl topicControl =
-                        session.feature(TopicControl.class);
-                    createInitialTopic(topicControl, updater);
+            updateControl.registerUpdateSource(PING_TOPIC, new UpdateSource.Default() {
+                public void onActive(String topicPath, Updater updater) {
+                  final TopicControl topicControl =
+                  session.feature(TopicControl.class);
+                  createInitialTopic(topicControl, updater);
                 }
-                @Override
-                public void onClosed(String topicPath) {
-                }
-                @Override
-                public void onStandBy(String topicPath) {
-                    LOG.warn("Failed to become source for {}", topicPath);
-                }
-            });
+           });
 
             final MessagingControl messagingControl =
                 session.feature(MessagingControl.class);
@@ -180,7 +169,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                 public UpdateCallback getUpdateCallback() {
                     return new UCallback() {
                         public void onSuccess(String topic) {
-                            super.onSuccess(topic);
+                            super.onSuccess();
                             initialised();
                         }
                     };
